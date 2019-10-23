@@ -34,11 +34,39 @@ public class SpittleControllerTest {
                 .andExpect(model().attribute("spittleList",hasItems(expectedSpittles.toArray())));
     }
 
+    @Test
+    public void shouldShowRecentSpittles2() throws Exception{
+        List<Spittle> expectedSpittles = createSpittleList(50);
+        SpittleRepository mockRepository = mock(SpittleRepository.class);
+        when(mockRepository.findSpittles(238900,50)).thenReturn(expectedSpittles);
+
+        SpittleController spittleController = new SpittleController(mockRepository);
+        MockMvc mockMvc = standaloneSetup(spittleController).setSingleView(new InternalResourceView("/WEB-INF/views/spittles.jsp")).build();
+        mockMvc.perform(get("/spittles?max=238900&count=50"))//对"/spittles"发起GET请求
+                .andExpect(view().name("spittles"))
+                .andExpect(model().attributeExists("spittleList"))
+                .andExpect(model().attribute("spittleList",hasItems(expectedSpittles.toArray())));
+    }
+
     private List<Spittle> createSpittleList(int count) {
         List<Spittle> spittles = new ArrayList<Spittle>();
         for (int i = 0; i < count; i++) {
             spittles.add(new Spittle("Spittle"+i,new Date()));
         }
         return spittles;
+    }
+
+    @Test
+    public void testSpittle() throws Exception{
+        Spittle spittle = new Spittle("Hello",new Date());
+        SpittleRepository mockRepository = mock(SpittleRepository.class);
+        when(mockRepository.findOne(12345)).thenReturn(spittle);
+
+        SpittleController spittleController = new SpittleController(mockRepository);
+        MockMvc mockMvc = standaloneSetup(spittleController).build();
+        mockMvc.perform(get("/spittles/12345"))//对"/spittles"发起GET请求
+                .andExpect(view().name("spittle"))
+                .andExpect(model().attributeExists("spittle"))
+                .andExpect(model().attribute("spittle",spittle));
     }
 }
